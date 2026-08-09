@@ -1,0 +1,573 @@
+<div [class]="'min-h-screen font-sans pb-20 transition-colors duration-500 ' + activeTheme().bgClass + ' ' + activeTheme().textPrimaryClass">
+
+  <!-- Adaptive Header -->
+  <header [class]="'sticky top-0 z-50 backdrop-blur-xl border-b transition-colors duration-500 ' + activeTheme().cardBgClass + ' ' + activeTheme().borderClass">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+
+      <!-- Brand -->
+      <div class="flex items-center gap-4">
+        @if (project()?.logo) {
+        <div [class]="'h-11 w-11 rounded-2xl border p-1.5 flex items-center justify-center shadow-sm ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass">
+          <img [src]="project()?.logo" alt="Logo" class="h-full w-full object-contain" />
+        </div>
+        }
+        <div>
+          <span [class]="'font-extrabold text-xl tracking-tight block ' + activeTheme().textPrimaryClass">{{ project()?.projectName || 'Elysia Heights' }}</span>
+          <span class="text-xs font-semibold tracking-wide flex items-center gap-1.5" [style.color]="customAccentColor()">
+            <span class="w-2 h-2 rounded-full animate-pulse" [style.background-color]="customAccentColor()"></span>
+            {{ project()?.city }}, {{ project()?.state }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Theme Switcher & Actions -->
+      <div class="flex items-center gap-3">
+
+        <!-- Palette Controller Button -->
+        <div class="relative">
+          <button (click)="toggleThemePicker()"
+                  type="button"
+                  [class]="'p-2.5 rounded-2xl border transition cursor-pointer flex items-center gap-2 text-xs font-bold shadow-sm ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass + ' ' + activeTheme().textPrimaryClass">
+            🎨 Themes & Colors
+          </button>
+
+          <!-- Dropdown Control Panel -->
+          @if (showThemePicker()) {
+          <div [class]="'absolute right-0 mt-3 w-80 backdrop-blur-2xl border rounded-3xl p-5 shadow-2xl z-50 space-y-4 ' + activeTheme().cardBgClass + ' ' + activeTheme().borderClass">
+            <h4 [class]="'text-xs font-bold uppercase tracking-wider ' + activeTheme().textSecondaryClass">Theme Series</h4>
+
+            <!-- Presets -->
+            <div class="space-y-2">
+              @for (theme of themes; track theme.id) {
+              <button (click)="selectPresetTheme(theme)"
+                      [class.ring-2]="activeTheme().id === theme.id"
+                      [style.ring-color]="customAccentColor()"
+                      [class]="'w-full text-left p-3 rounded-2xl border transition flex items-center justify-between cursor-pointer ' + theme.inputBgClass + ' ' + theme.borderClass">
+                <div>
+                  <span [class]="'text-xs font-bold block ' + theme.textPrimaryClass">{{ theme.name }}</span>
+                  <span [class]="'text-[10px] uppercase font-semibold ' + theme.textSecondaryClass">{{ theme.mode }} mode</span>
+                </div>
+                <span class="w-4 h-4 rounded-full border border-slate-300 shadow-inner" [style.background-color]="theme.accentHex"></span>
+              </button>
+              }
+            </div>
+
+            <!-- Live Color Picker -->
+            <div [class]="'pt-3 border-t ' + activeTheme().borderClass">
+              <label [class]="'block text-xs font-bold uppercase tracking-wider mb-2 ' + activeTheme().textSecondaryClass">Custom Accent Color</label>
+              <div [class]="'flex items-center gap-3 p-2 rounded-2xl border ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass">
+                <input type="color"
+                       [value]="customAccentColor()"
+                       (input)="onCustomColorChange($any($event.target).value)"
+                       class="w-8 h-8 rounded-xl bg-transparent border-0 cursor-pointer" />
+                <span [class]="'text-xs font-mono font-bold uppercase ' + activeTheme().textPrimaryClass">{{ customAccentColor() }}</span>
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+
+        <!-- Book Tour CTA -->
+        <button (click)="openBookingModal()"
+                type="button"
+                [style.background-color]="customAccentColor()"
+                class="hover:brightness-110 active:scale-95 text-white font-black px-6 py-2.5 rounded-2xl transition-all text-sm shadow-md cursor-pointer flex items-center gap-2">
+          ✨ Book Tour
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+
+    <!-- Skeleton -->
+    @if (loading()) {
+    <div class="animate-pulse space-y-6">
+      <div [class]="'h-96 rounded-3xl w-full border ' + activeTheme().cardBgClass + ' ' + activeTheme().borderClass"></div>
+    </div>
+    }
+
+    @if (!loading() && project(); as p) {
+
+    <!-- Hero Section -->
+    <section [class]="'relative rounded-3xl overflow-hidden shadow-xl border mb-8 ' + activeTheme().borderClass">
+      <div class="relative h-[360px] sm:h-[480px] w-full bg-slate-900">
+        <img [src]="activeHeroImage()"
+             [alt]="p.projectName"
+             class="w-full h-full object-cover transition-all duration-500 opacity-90" />
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent"></div>
+      </div>
+
+      <!-- Floating Hero Info -->
+      <div class="absolute bottom-0 inset-x-0 p-6 sm:p-10 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+        <div class="space-y-3 max-w-2xl">
+          <div class="flex flex-wrap gap-2">
+            <span [style.background-color]="customAccentColor()"
+                  class="text-white text-xs uppercase tracking-widest font-extrabold px-3.5 py-1 rounded-full shadow-md">
+              {{ p.tenure }}
+            </span>
+            <span class="bg-slate-900/80 backdrop-blur-md text-slate-200 text-xs font-semibold px-3.5 py-1 rounded-full border border-white/20">
+              {{ p.totalUnit }} Units (Block A: {{ p.totalUnitByBlock[0].totalUnit }} | Block B: {{ p.totalUnitByBlock[1].totalUnit }})
+            </span>
+          </div>
+
+          <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-white drop-shadow-md">{{ p.projectName }}</h1>
+
+          <p class="text-slate-200 text-sm sm:text-base flex items-center gap-1.5 font-medium">
+            📍 {{ p.address1 }}, {{ p.address2 }}, {{ p.postalCode }} {{ p.city }}, {{ p.state }}
+          </p>
+        </div>
+
+        <div [class]="'backdrop-blur-xl p-5 rounded-3xl border min-w-[220px] shadow-2xl ' + activeTheme().cardBgClass + ' ' + activeTheme().borderClass">
+          <p [class]="'text-xs font-semibold uppercase tracking-wider ' + activeTheme().textSecondaryClass">Developer</p>
+          <p [class]="'text-base font-bold truncate mt-0.5 ' + activeTheme().textPrimaryClass">{{ p.companyInfo.name }}</p>
+          <p class="text-xs mt-1 font-mono font-bold" [style.color]="customAccentColor()">Code: {{ p.companyInfo.developerCode }}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gallery Preview Strip -->
+    @if (p.imageList && p.imageList.length > 0) {
+    <div class="mb-10">
+      <h4 [class]="'text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2 ' + activeTheme().textSecondaryClass">
+        <span>🖼️ Architectural Gallery</span>
+        <span class="opacity-60">(Click to view)</span>
+      </h4>
+      <div class="flex gap-3 overflow-x-auto pb-3">
+        @for (img of p.imageList; track img) {
+        <button (click)="setHeroImage(img)"
+                [style.border-color]="activeHeroImage() === img ? customAccentColor() : 'transparent'"
+                [class.scale-105]="activeHeroImage() === img"
+                [class]="'relative h-20 w-32 flex-shrink-0 rounded-2xl overflow-hidden border cursor-pointer hover:opacity-90 transition-all shadow-sm ' + activeTheme().borderClass">
+          <img [src]="img" alt="Gallery photo" class="h-full w-full object-cover" />
+        </button>
+        }
+      </div>
+    </div>
+    }
+
+    <!-- Main Layout Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+      <!-- Left Section -->
+      <div class="lg:col-span-2 space-y-8">
+
+        <!-- Navigation Tabs -->
+        <div [class]="'flex border-b gap-8 text-sm font-bold overflow-x-auto pb-1 ' + activeTheme().borderClass">
+          <button (click)="setTab('overview')"
+                  [style.border-color]="activeTab === 'overview' ? customAccentColor() : 'transparent'"
+                  [style.color]="activeTab === 'overview' ? customAccentColor() : 'inherit'"
+                  class="pb-4 border-b-2 hover:opacity-100 transition whitespace-nowrap cursor-pointer opacity-70">
+            Overview
+          </button>
+          <button (click)="setTab('layouts')"
+                  [style.border-color]="activeTab === 'layouts' ? customAccentColor() : 'transparent'"
+                  [style.color]="activeTab === 'layouts' ? customAccentColor() : 'inherit'"
+                  class="pb-4 border-b-2 hover:opacity-100 transition whitespace-nowrap cursor-pointer opacity-70">
+            Unit Layouts ({{ p.layouts.length }})
+          </button>
+          <button (click)="setTab('facilities')"
+                  [style.border-color]="activeTab === 'facilities' ? customAccentColor() : 'transparent'"
+                  [style.color]="activeTab === 'facilities' ? customAccentColor() : 'inherit'"
+                  class="pb-4 border-b-2 hover:opacity-100 transition whitespace-nowrap cursor-pointer opacity-70">
+            Facilities ({{ p.projectDetails.length }})
+          </button>
+          <button (click)="setTab('fees')"
+                  [style.border-color]="activeTab === 'fees' ? customAccentColor() : 'transparent'"
+                  [style.color]="activeTab === 'fees' ? customAccentColor() : 'inherit'"
+                  class="pb-4 border-b-2 hover:opacity-100 transition whitespace-nowrap cursor-pointer opacity-70">
+            Additional Fees ({{ p.additionalFee.length }})
+          </button>
+          <button (click)="setTab('documents')"
+                  [style.border-color]="activeTab === 'documents' ? customAccentColor() : 'transparent'"
+                  [style.color]="activeTab === 'documents' ? customAccentColor() : 'inherit'"
+                  class="pb-4 border-b-2 hover:opacity-100 transition whitespace-nowrap cursor-pointer opacity-70">
+            Brochures & Maps
+          </button>
+          <button (click)="setTab('developer')"
+                  [style.border-color]="activeTab === 'developer' ? customAccentColor() : 'transparent'"
+                  [style.color]="activeTab === 'developer' ? customAccentColor() : 'inherit'"
+                  class="pb-4 border-b-2 hover:opacity-100 transition whitespace-nowrap cursor-pointer opacity-70">
+            Developer Info
+          </button>
+        </div>
+
+        <!-- TAB 1: OVERVIEW -->
+        @if (activeTab === 'overview') {
+        <div [class]="'p-8 rounded-3xl border shadow-sm space-y-6 ' + activeTheme().cardBgClass + ' ' + activeTheme().borderClass">
+          <div>
+            <h3 [class]="'text-2xl font-black mb-1 ' + activeTheme().textPrimaryClass">{{ p.descriptionTitle }}</h3>
+            <p class="text-xs font-bold uppercase tracking-wider mb-4" [style.color]="customAccentColor()">{{ p.descriptionSubTitle }}</p>
+            <p [class]="'text-sm leading-relaxed ' + activeTheme().textSecondaryClass">{{ p.descriptionOverview }}</p>
+          </div>
+
+          <div [class]="'grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t ' + activeTheme().borderClass">
+            <div [class]="'p-4 rounded-2xl border ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass">
+              <span [class]="'block text-xs font-medium ' + activeTheme().textSecondaryClass">Tenure</span>
+              <span [class]="'text-sm font-bold ' + activeTheme().textPrimaryClass">{{ p.tenure }}</span>
+            </div>
+            <div [class]="'p-4 rounded-2xl border ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass">
+              <span [class]="'block text-xs font-medium ' + activeTheme().textSecondaryClass">Land Size</span>
+              <span [class]="'text-sm font-bold ' + activeTheme().textPrimaryClass">{{ p.landSize }} {{ p.metricUnit }}</span>
+            </div>
+            <div [class]="'p-4 rounded-2xl border ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass">
+              <span [class]="'block text-xs font-medium ' + activeTheme().textSecondaryClass">Total Units</span>
+              <span [class]="'text-sm font-bold ' + activeTheme().textPrimaryClass">{{ p.totalUnit }} Units</span>
+            </div>
+            <div [class]="'p-4 rounded-2xl border ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass">
+              <span [class]="'block text-xs font-medium ' + activeTheme().textSecondaryClass">Booking Fee</span>
+              <span class="text-sm font-bold" [style.color]="customAccentColor()">{{ p.currency }} {{ p.bookingFees }}</span>
+            </div>
+          </div>
+
+          <!-- Video Showcase -->
+          @if (safeVideoUrl()) {
+          <div [class]="'pt-6 border-t ' + activeTheme().borderClass">
+            <h4 [class]="'text-sm font-bold mb-3 ' + activeTheme().textPrimaryClass">🎥 Official Virtual Video Tour</h4>
+            <div [class]="'relative w-full aspect-video rounded-2xl overflow-hidden border shadow-md ' + activeTheme().borderClass">
+              <iframe [src]="safeVideoUrl()" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
+            </div>
+          </div>
+          }
+
+          <!-- Master Site Plan -->
+          @if (p.sitePlan) {
+          <div [class]="'pt-6 border-t ' + activeTheme().borderClass">
+            <h4 [class]="'text-sm font-bold mb-3 ' + activeTheme().textPrimaryClass">Master Site Plan</h4>
+            <a [href]="p.sitePlan" target="_blank" [class]="'block rounded-2xl overflow-hidden border hover:opacity-95 transition ' + activeTheme().borderClass">
+              <img [src]="p.sitePlan" alt="Site Plan" class="w-full object-cover max-h-96" />
+            </a>
+          </div>
+          }
+        </div>
+        }
+
+        <!-- TAB 2: UNIT LAYOUTS -->
+        @if (activeTab === 'layouts') {
+        <div [class]="'p-8 rounded-3xl border shadow-sm space-y-6 ' + activeTheme().cardBgClass + ' ' + activeTheme().borderClass">
+
+          <div class="flex gap-3 overflow-x-auto pb-1">
+            @for (layout of p.layouts; track layout.name) {
+            <button (click)="selectLayout(layout)"
+                    [style.background-color]="selectedLayout()?.name === layout.name ? customAccentColor() : 'transparent'"
+                    [style.color]="selectedLayout()?.name === layout.name ? '#ffffff' : 'inherit'"
+                    [class]="'px-6 py-3 rounded-2xl font-extrabold text-sm transition-all border cursor-pointer shadow-sm ' + activeTheme().borderClass">
+              {{ layout.name }} ({{ layout.totalUnit }} Units)
+            </button>
+            }
+          </div>
+
+          @if (selectedLayout(); as lay) {
+          <div [class]="'space-y-6 pt-6 border-t ' + activeTheme().borderClass">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div class="space-y-4">
+                <h4 [class]="'text-2xl font-black ' + activeTheme().textPrimaryClass">{{ lay.name }} Details</h4>
+
+                <div class="space-y-2.5">
+                  <div [class]="'flex justify-between text-sm p-3.5 rounded-xl border ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass">
+                    <span [class]="'font-medium ' + activeTheme().textSecondaryClass">Layout Config:</span>
+                    <span [class]="'font-bold ' + activeTheme().textPrimaryClass">{{ lay.layoutData.description.value[0] }}</span>
+                  </div>
+                  <div [class]="'flex justify-between text-sm p-3.5 rounded-xl border ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass">
+                    <span [class]="'font-medium ' + activeTheme().textSecondaryClass">Built-Up Area:</span>
+                    <span [class]="'font-bold ' + activeTheme().textPrimaryClass">{{ lay.buildUpArea }} sq metre</span>
+                  </div>
+                  <div [class]="'flex justify-between text-sm p-3.5 rounded-xl border ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass">
+                    <span [class]="'font-medium ' + activeTheme().textSecondaryClass">Land Area:</span>
+                    <span [class]="'font-bold ' + activeTheme().textPrimaryClass">{{ lay.landArea }} sq metre</span>
+                  </div>
+                </div>
+
+                <!-- Specification Badges -->
+                @if (lay.layoutData.layoutSpecification && lay.layoutData.layoutSpecification.length > 0) {
+                <div>
+                  <h5 [class]="'text-xs font-bold uppercase tracking-widest mb-2 ' + activeTheme().textSecondaryClass">Included Specs</h5>
+                  <div class="grid grid-cols-2 gap-2">
+                    @for (spec of lay.layoutData.layoutSpecification; track spec.name) {
+                    <div [class]="'flex items-center gap-2.5 p-2.5 rounded-xl border text-xs font-semibold ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass + ' ' + activeTheme().textPrimaryClass">
+
+                      <!-- 💡 White background container added behind the icon -->
+                      <div class="w-7 h-7 rounded-lg bg-white p-1 flex items-center justify-center flex-shrink-0 shadow-sm border border-slate-200/50">
+                        <img [src]="spec.imageUrl" [alt]="spec.name" class="w-full h-full object-contain" />
+                      </div>
+
+                      <span>{{ spec.name }}</span>
+                    </div>
+                    }
+                  </div>
+                </div>
+                }
+
+                <!-- Virtual Tours & PDF Buttons -->
+                <div class="flex flex-wrap gap-2 pt-2">
+
+                  <!-- Interior 360° Virtual Tour Button -->
+                  @if (getTourUrl(lay.layoutData.interior); as interiorUrl) {
+                  <a [href]="interiorUrl"
+                     target="_blank"
+                     class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-500/15 text-indigo-600 border border-indigo-500/30 font-bold rounded-xl text-xs hover:bg-indigo-500/25 transition">
+                    🏠 Interior 360° Virtual Tour
+                  </a>
+                  }
+
+                  <!-- Exterior 360° Virtual Tour Button -->
+                  @if (getTourUrl(lay.layoutData.exterior); as exteriorUrl) {
+                  <a [href]="exteriorUrl"
+                     target="_blank"
+                     class="inline-flex items-center gap-2 px-4 py-2.5 bg-sky-500/15 text-sky-600 border border-sky-500/30 font-bold rounded-xl text-xs hover:bg-sky-500/25 transition">
+                    🌐 Exterior 360° Virtual Tour
+                  </a>
+                  }
+
+                  <!-- Download PDF Button -->
+                  @if (lay.layoutData.document.attachments && lay.layoutData.document.attachments.length > 0) {
+                  <a [href]="lay.layoutData.document.attachments[0].value"
+                     target="_blank"
+                     class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-500/15 text-emerald-600 border border-emerald-500/30 font-bold rounded-xl text-xs hover:bg-emerald-500/25 transition">
+                    📄 Download {{ lay.name }} PDF
+                  </a>
+                  }
+                </div>
+
+              </div>
+
+              <!-- Floor Plan Image -->
+              <div>
+                <h5 [class]="'text-xs font-bold uppercase tracking-widest mb-2 ' + activeTheme().textSecondaryClass">Floor Plan Diagram</h5>
+                @if (lay.url && lay.url.length > 0) {
+                <a [href]="lay.url[0]" target="_blank" [class]="'block p-3 rounded-2xl border transition ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass">
+                  <img [src]="lay.url[0]" [alt]="lay.name" class="w-full object-contain max-h-72 rounded-xl" />
+                </a>
+                }
+              </div>
+            </div>
+
+          </div>
+          }
+        </div>
+        }
+
+        <!-- TAB 3: FACILITIES -->
+        @if (activeTab === 'facilities') {
+        <div [class]="'p-8 rounded-3xl border shadow-sm ' + activeTheme().cardBgClass + ' ' + activeTheme().borderClass">
+          <h3 [class]="'text-2xl font-black mb-6 ' + activeTheme().textPrimaryClass">Township Facilities</h3>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            @for (facility of p.projectDetails; track facility.name) {
+            <div [class]="'p-6 rounded-2xl border flex flex-col items-center text-center gap-3 transition ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass">
+
+              <!-- 💡 White background container behind facility icons -->
+              <div class="w-16 h-16 rounded-2xl bg-white p-3 flex items-center justify-center shadow-md border border-slate-200/60">
+                <img [src]="facility.imageUrl" [alt]="facility.name" class="w-full h-full object-contain" />
+              </div>
+
+              <span [class]="'text-sm font-bold ' + activeTheme().textPrimaryClass">{{ facility.name }}</span>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+        <!-- TAB 4: ADDITIONAL FEES -->
+        @if (activeTab === 'fees') {
+        <div [class]="'p-8 rounded-3xl border shadow-sm ' + activeTheme().cardBgClass + ' ' + activeTheme().borderClass">
+          <h3 [class]="'text-2xl font-black mb-6 ' + activeTheme().textPrimaryClass">Additional Fee Breakdown</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            @for (fee of p.additionalFee; track fee.name) {
+            <div [class]="'p-6 rounded-2xl border flex flex-col items-center text-center gap-3 ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass">
+
+              <!-- 💡 White background container added behind the fee icon -->
+              <div class="w-16 h-16 rounded-2xl bg-white p-3 flex items-center justify-center shadow-md border border-slate-200/60">
+                <img [src]="fee.imageUrl" [alt]="fee.name" class="w-full h-full object-contain" />
+              </div>
+
+              <span [class]="'text-sm font-bold ' + activeTheme().textPrimaryClass">{{ fee.name }}</span>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+        <!-- TAB 5: DOCUMENTS -->
+        @if (activeTab === 'documents') {
+        <div [class]="'p-8 rounded-3xl border shadow-sm space-y-6 ' + activeTheme().cardBgClass + ' ' + activeTheme().borderClass">
+          <div>
+            <h3 [class]="'text-2xl font-black mb-4 ' + activeTheme().textPrimaryClass">Official PDF Downloads</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              @for (doc of p.documents; track doc.url) {
+              <a [href]="doc.url" target="_blank" [class]="'p-4 border rounded-2xl flex items-center justify-between font-bold text-sm transition ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass + ' ' + activeTheme().textPrimaryClass">
+                <span>📄 {{ doc.value }}</span>
+                <span>⬇️</span>
+              </a>
+              }
+            </div>
+          </div>
+
+          @if (p.map && p.map.length > 0) {
+          <div [class]="'pt-6 border-t ' + activeTheme().borderClass">
+            <h4 [class]="'text-sm font-bold mb-3 ' + activeTheme().textPrimaryClass">Location Map</h4>
+            <a [href]="p.map[0].url" target="_blank">
+              <img [src]="p.map[0].url" alt="Location Map" [class]="'w-full rounded-2xl border object-cover max-h-80 ' + activeTheme().borderClass" />
+            </a>
+          </div>
+          }
+        </div>
+        }
+
+        <!-- TAB 6: DEVELOPER INFO -->
+        @if (activeTab === 'developer') {
+        <div [class]="'p-8 rounded-3xl border shadow-sm space-y-4 ' + activeTheme().cardBgClass + ' ' + activeTheme().borderClass">
+          <h3 [class]="'text-2xl font-black ' + activeTheme().textPrimaryClass">{{ p.companyInfo.name }}</h3>
+
+          <div [class]="'space-y-3 text-sm ' + activeTheme().textSecondaryClass">
+            <p>📍 <strong>Address:</strong> {{ p.companyInfo.address1 }}, {{ p.companyInfo.address2 }}, {{ p.companyInfo.postalCode }} {{ p.companyInfo.city }}, {{ p.companyInfo.state }}</p>
+            <p>📞 <strong>Phone:</strong> +{{ p.companyInfo.countryCode }} {{ p.companyInfo.phoneNo }}</p>
+            <p>✉️ <strong>Email:</strong> {{ p.companyInfo.email }}</p>
+            <p>📜 <strong>Developer Code:</strong> {{ p.companyInfo.developerCode }}</p>
+            <p>🏢 <strong>Registration:</strong> {{ p.companyInfo.newRegistrationNo }} ({{ p.companyInfo.registrationNo }})</p>
+          </div>
+        </div>
+        }
+
+      </div>
+
+      <!-- Right Side Lead Form Card -->
+      <div class="space-y-6">
+        <div [class]="'p-6 rounded-3xl border shadow-xl sticky top-28 ' + activeTheme().cardBgClass + ' ' + activeTheme().borderClass">
+          <h3 [class]="'text-xl font-bold mb-1 ' + activeTheme().textPrimaryClass">Inquire About {{ p.projectName }}</h3>
+          <p [class]="'text-xs mb-6 ' + activeTheme().textSecondaryClass">Direct response from MTD Properties sales team.</p>
+
+          @if (!inquirySubmitted()) {
+          <form (submit)="submitInquiry($event)" class="space-y-4">
+            <div>
+              <label [class]="'block text-xs font-semibold mb-1 ' + activeTheme().textSecondaryClass">
+                Full Name <span class="text-rose-500">*</span>
+              </label>
+              <input type="text"
+                     required
+                     [(ngModel)]="inquiryName"
+                     name="inquiryName"
+                     placeholder="Full Name"
+                     [class]="'w-full px-4 py-3 rounded-2xl border text-sm outline-none transition ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass + ' ' + activeTheme().textPrimaryClass" />
+            </div>
+
+            <div>
+              <label [class]="'block text-xs font-semibold mb-1 ' + activeTheme().textSecondaryClass">
+                Email Address <span class="text-rose-500">*</span>
+              </label>
+              <input type="email"
+                     required
+                     [(ngModel)]="inquiryEmail"
+                     name="inquiryEmail"
+                     placeholder="Email Address"
+                     [class]="'w-full px-4 py-3 rounded-2xl border text-sm outline-none transition ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass + ' ' + activeTheme().textPrimaryClass" />
+            </div>
+
+            <div>
+              <label [class]="'block text-xs font-semibold mb-1 ' + activeTheme().textSecondaryClass">
+                Phone Number <span class="text-rose-500">*</span>
+              </label>
+              <input type="tel"
+                     required
+                     [(ngModel)]="inquiryPhone"
+                     name="inquiryPhone"
+                     placeholder="Phone Number"
+                     [class]="'w-full px-4 py-3 rounded-2xl border text-sm outline-none transition ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass + ' ' + activeTheme().textPrimaryClass" />
+            </div>
+
+            <button type="submit"
+                    [disabled]="!inquiryName().trim() || !inquiryEmail().trim() || !inquiryPhone().trim()"
+                    [style.background-color]="(!inquiryName().trim() || !inquiryEmail().trim() || !inquiryPhone().trim()) ? '#475569' : customAccentColor()"
+                    class="w-full text-white font-black py-3.5 rounded-2xl transition-all text-sm shadow-md cursor-pointer mt-2 disabled:opacity-50 disabled:cursor-not-allowed">
+              Submit Interest
+            </button>
+          </form>
+          } @else {
+          <div [class]="'p-6 rounded-2xl border text-center space-y-3 ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass">
+            <span class="text-4xl block">✅</span>
+            <h4 [class]="'text-base font-bold ' + activeTheme().textPrimaryClass">Inquiry Received!</h4>
+            <p [class]="'text-xs ' + activeTheme().textSecondaryClass">Thank you, <strong>{{ inquiryName() }}</strong>. Our representative will contact you shortly.</p>
+            <button (click)="resetInquiry()"
+                    type="button"
+                    [class]="'text-xs underline font-semibold pt-2 block mx-auto cursor-pointer ' + activeTheme().textSecondaryClass">
+              Send Another Inquiry
+            </button>
+          </div>
+          }
+        </div>
+      </div>
+
+    </div>
+    }
+
+  </main>
+
+  <!-- Showroom Booking Modal -->
+  @if (showBookingModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md">
+    <div [class]="'rounded-3xl max-w-md w-full p-6 shadow-2xl relative border ' + activeTheme().cardBgClass + ' ' + activeTheme().borderClass">
+
+      <button (click)="closeBookingModal()" type="button" [class]="'absolute top-4 right-4 p-2 text-xl cursor-pointer ' + activeTheme().textSecondaryClass">✕</button>
+
+      @if (!bookingSuccess()) {
+      <h3 [class]="'text-2xl font-black mb-1 ' + activeTheme().textPrimaryClass">Book Showroom Tour</h3>
+      <p [class]="'text-xs mb-6 ' + activeTheme().textSecondaryClass">Schedule a private viewing with MTD Properties.</p>
+
+      <form (submit)="submitBooking($event)" class="space-y-4">
+        <div>
+          <label [class]="'block text-xs font-semibold mb-1 ' + activeTheme().textSecondaryClass">
+            Your Name <span class="text-rose-500">*</span>
+          </label>
+          <input type="text"
+                 required
+                 [(ngModel)]="bookingName"
+                 name="bookingName"
+                 placeholder="Full Name"
+                 [class]="'w-full px-4 py-3 rounded-2xl border text-sm outline-none ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass + ' ' + activeTheme().textPrimaryClass" />
+        </div>
+
+        <div>
+          <label [class]="'block text-xs font-semibold mb-1 ' + activeTheme().textSecondaryClass">
+            Phone Number <span class="text-rose-500">*</span>
+          </label>
+          <input type="tel"
+                 required
+                 [(ngModel)]="bookingPhone"
+                 name="bookingPhone"
+                 placeholder="Phone Number"
+                 [class]="'w-full px-4 py-3 rounded-2xl border text-sm outline-none ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass + ' ' + activeTheme().textPrimaryClass" />
+        </div>
+
+        <div>
+          <label [class]="'block text-xs font-semibold mb-1 ' + activeTheme().textSecondaryClass">
+            Preferred Date <span class="text-rose-500">*</span>
+          </label>
+          <input type="date"
+                 required
+                 [(ngModel)]="bookingDate"
+                 name="bookingDate"
+                 [class]="'w-full px-4 py-3 rounded-2xl border text-sm outline-none ' + activeTheme().inputBgClass + ' ' + activeTheme().borderClass + ' ' + activeTheme().textPrimaryClass" />
+        </div>
+
+        <button type="submit"
+                [disabled]="!bookingName().trim() || !bookingPhone().trim() || !bookingDate().trim()"
+                [style.background-color]="(!bookingName().trim() || !bookingPhone().trim() || !bookingDate().trim()) ? '#475569' : customAccentColor()"
+                class="w-full text-white font-black py-3.5 rounded-2xl transition-all shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+          Confirm Appointment
+        </button>
+      </form>
+      } @else {
+      <div class="text-center py-8 space-y-3">
+        <span class="text-5xl block">🎉</span>
+        <h4 [class]="'text-2xl font-black ' + activeTheme().textPrimaryClass">Tour Requested!</h4>
+        <p [class]="'text-xs ' + activeTheme().textSecondaryClass">MTD Properties sales gallery team will reach out shortly to confirm your visit.</p>
+      </div>
+      }
+
+    </div>
+  </div>
+  }
+
+</div>

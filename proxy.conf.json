@@ -1,0 +1,7 @@
+{
+  "/sales-api": {
+    "target": "https://stag1.moabi2u.com",
+    "secure": false,
+    "changeOrigin": true
+  }
+}
